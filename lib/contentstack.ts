@@ -1,93 +1,333 @@
-// Importing Contentstack SDK and specific types for region and query operations
-import contentstack, { QueryOperation } from "@contentstack/delivery-sdk";
-
-// Importing Contentstack Live Preview utilities and stack SDK 
+import contentstack, { QueryOperation, Region } from "@contentstack/delivery-sdk";
 import ContentstackLivePreview, { IStackSdk } from "@contentstack/live-preview-utils";
+import type {
+  PageComponent,
+  Article,
+  Author,
+  Category,
+  Header,
+  Footer,
+} from "@/types";
 
-// Importing the Page type definition 
-import { Page } from "./types";
+export const isPreview = process.env.NEXT_PUBLIC_PREVIEW === "true";
 
-// helper functions from private package to retrieve Contentstack endpoints in a convienient way
-import { getContentstackEndpoints, getRegionForString } from "@timbenniks/contentstack-endpoints";
+const regionMap: Record<string, Region> = {
+  NA: Region.US,
+  US: Region.US,
+  EU: Region.EU,
+  AZURE_NA: Region.AZURE_NA,
+  AZURE_EU: Region.AZURE_EU,
+  GCP_NA: Region.GCP_NA,
+};
 
-export const isPreview = process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW === "true";
-
-// Set the region by string value from environment variables
-const region = getRegionForString(process.env.NEXT_PUBLIC_CONTENTSTACK_REGION as string)
-
-// object with all endpoints for region.
-const endpoints = getContentstackEndpoints(region, true)
+const region = regionMap[process.env.CONTENTSTACK_REGION || "EU"] || Region.EU;
 
 export const stack = contentstack.stack({
-  // Setting the API key from environment variables
-  apiKey: process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY as string,
-
-  // Setting the delivery token from environment variables
-  deliveryToken: process.env.NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN as string,
-
-  // Setting the environment based on environment variables
-  environment: process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT as string,
-
-  // Setting the region
-  // if the region doesnt exist, fall back to a custom region given by the env vars
-  // for internal testing purposes at Contentstack we look for a custom region in the env vars, you do not have to do this.
-  region: region ? region : process.env.NEXT_PUBLIC_CONTENTSTACK_REGION as any,
-
-  // Setting the host for content delivery based on the region or environment variables
-  // This is done for internal testing purposes at Contentstack, you can omit this if you have set a region above.
-  host: process.env.NEXT_PUBLIC_CONTENTSTACK_CONTENT_DELIVERY || endpoints && endpoints.contentDelivery,
-
+  apiKey: process.env.CONTENTSTACK_API_KEY as string,
+  deliveryToken: process.env.CONTENTSTACK_DELIVERY_TOKEN as string,
+  environment: process.env.CONTENTSTACK_ENVIRONMENT as string,
+  region,
   live_preview: {
-    // Enabling live preview if specified in environment variables
-    enable: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW === 'true',
-
-    // Setting the preview token from environment variables
-    preview_token: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN,
-
-    // Setting the host for live preview based on the region
-    // for internal testing purposes at Contentstack we look for a custom host in the env vars, you do not have to do this.
-    host: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_HOST || endpoints && endpoints.preview
-  }
+    enable: isPreview,
+    preview_token: process.env.CONTENTSTACK_PREVIEW_TOKEN,
+    host: region === Region.EU ? "eu-rest-preview.contentstack.com" : "rest-preview.contentstack.com",
+  },
 });
 
-// Initialize live preview functionality
 export function initLivePreview() {
   ContentstackLivePreview.init({
-    ssr: false, // Disabling server-side rendering for live preview
-    enable: process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW === 'true', // Enabling live preview if specified in environment variables
-    mode: "builder", // Setting the mode to "builder" for visual builder
-    stackSdk: stack.config as IStackSdk, // Passing the stack configuration
+    ssr: false,
+    enable: isPreview,
+    mode: "builder",
+    stackSdk: stack.config as IStackSdk,
     stackDetails: {
-      apiKey: process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY as string, // Setting the API key from environment variables
-      environment: process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT as string, // Setting the environment from environment variables
-    },
-    clientUrlParams: {
-      // Setting the client URL parameters for live preview
-      // for internal testing purposes at Contentstack we look for a custom host in the env vars, you do not have to do this.
-      host: process.env.NEXT_PUBLIC_CONTENTSTACK_CONTENT_APPLICATION || endpoints && endpoints.application
+      apiKey: process.env.CONTENTSTACK_API_KEY as string,
+      environment: process.env.CONTENTSTACK_ENVIRONMENT as string,
     },
     editButton: {
-      enable: true, // Enabling the edit button for live preview
-      exclude: ["outsideLivePreviewPortal"] // Excluding the edit button from the live preview portal
+      enable: true,
+      exclude: ["outsideLivePreviewPortal"],
     },
   });
 }
-// Function to fetch page data based on the URL
-export async function getPage(url: string) {
-  const result = await stack
-    .contentType("page") // Specifying the content type as "page"
-    .entry() // Accessing the entry
-    .query() // Creating a query
-    .where("url", QueryOperation.EQUALS, url) // Filtering entries by URL
-    .find<Page>(); // Executing the query and expecting a result of type Page
 
-  if (result.entries) {
-    const entry = result.entries[0]; // Getting the first entry from the result
+// Page Component
+export async function getPage(url: string): Promise<PageComponent | null> {
+  try {
+    const result = await stack
+      .contentType("page_component")
+      .entry()
+      .includeReference([
+        "sections.hero_featured_article.featured_article",
+        "sections.hero_featured_article.featured_article.author",
+        "sections.hero_featured_article.featured_article.category",
+        "sections.recent_articles_section.filter_category",
+        "sections.articles_list_section.filter_category",
+      ])
+      .query()
+      .where("url", QueryOperation.EQUALS, url)
+      .find<PageComponent>();
 
-    if (isPreview) {
-      contentstack.Utils.addEditableTags(entry, 'page', true); // Adding editable tags for live preview if enabled
+    console.log("[getPage]", url, "entries:", result.entries?.length ?? 0);
+
+    if (result.entries && result.entries.length > 0) {
+      const entry = result.entries[0];
+      if (isPreview) {
+        contentstack.Utils.addEditableTags(entry, "page_component", true);
+      }
+      return entry;
+    }
+    return null;
+  } catch (err) {
+    console.error("[getPage] error:", err);
+    return null;
+  }
+}
+
+// Article
+export async function getArticle(slug: string): Promise<Article | null> {
+  try {
+    const result = await stack
+      .contentType("article")
+      .entry()
+      .includeReference(["author", "category"])
+      .query()
+      .where("url", QueryOperation.EQUALS, `/articles/${slug}`)
+      .find<Article>();
+
+    if (result.entries && result.entries.length > 0) {
+      const entry = result.entries[0];
+      if (isPreview) {
+        contentstack.Utils.addEditableTags(entry, "article", true);
+      }
+      return entry;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// Author
+export async function getAuthor(slug: string): Promise<Author | null> {
+  try {
+    const result = await stack
+      .contentType("author")
+      .entry()
+      .query()
+      .where("url", QueryOperation.EQUALS, `/auteurs/${slug}`)
+      .find<Author>();
+
+    if (result.entries && result.entries.length > 0) {
+      const entry = result.entries[0];
+      if (isPreview) {
+        contentstack.Utils.addEditableTags(entry, "author", true);
+      }
+      return entry;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// Category
+export async function getCategory(slug: string): Promise<Category | null> {
+  try {
+    const result = await stack
+      .contentType("category")
+      .entry()
+      .query()
+      .where("url", QueryOperation.EQUALS, `/categories/${slug}`)
+      .find<Category>();
+
+    if (result.entries && result.entries.length > 0) {
+      const entry = result.entries[0];
+      if (isPreview) {
+        contentstack.Utils.addEditableTags(entry, "category", true);
+      }
+      return entry;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// All Articles
+export async function getAllArticles(): Promise<Article[]> {
+  try {
+    const result = await stack
+      .contentType("article")
+      .entry()
+      .includeReference(["author", "category"])
+      .query()
+      .find<Article>();
+
+    if (result.entries) {
+      if (isPreview) {
+        result.entries.forEach((entry) => {
+          contentstack.Utils.addEditableTags(entry, "article", true);
+        });
+      }
+      return result.entries;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+// All Authors
+export async function getAllAuthors(): Promise<Author[]> {
+  try {
+    const result = await stack
+      .contentType("author")
+      .entry()
+      .query()
+      .find<Author>();
+
+    if (result.entries) {
+      if (isPreview) {
+        result.entries.forEach((entry) => {
+          contentstack.Utils.addEditableTags(entry, "author", true);
+        });
+      }
+      return result.entries;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+// All Categories
+export async function getAllCategories(): Promise<Category[]> {
+  try {
+    const result = await stack
+      .contentType("category")
+      .entry()
+      .query()
+      .find<Category>();
+
+    if (result.entries) {
+      if (isPreview) {
+        result.entries.forEach((entry) => {
+          contentstack.Utils.addEditableTags(entry, "category", true);
+        });
+      }
+      return result.entries;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
+// Articles By Author
+export async function getArticlesByAuthor(authorUid: string): Promise<Article[]> {
+  try {
+    const articles = await getAllArticles();
+    return articles.filter((article) => {
+      const authors = Array.isArray(article.author)
+        ? article.author
+        : article.author
+          ? [article.author]
+          : [];
+      return authors.some((a) => a.uid === authorUid);
+    });
+  } catch {
+    return [];
+  }
+}
+
+// Articles By Category
+export async function getArticlesByCategory(categoryUid: string): Promise<Article[]> {
+  try {
+    const articles = await getAllArticles();
+    return articles.filter((article) => {
+      const categories = Array.isArray(article.category)
+        ? article.category
+        : article.category
+          ? [article.category]
+          : [];
+      return categories.some((c) => c.uid === categoryUid);
+    });
+  } catch {
+    return [];
+  }
+}
+
+// Related Articles (same category, excluding current, max 3)
+export async function getRelatedArticles(
+  categoryUid: string,
+  excludeUid: string
+): Promise<Article[]> {
+  try {
+    const articles = await getAllArticles();
+    return articles
+      .filter((article) => {
+        if (article.uid === excludeUid) return false;
+        const categories = Array.isArray(article.category)
+          ? article.category
+          : article.category
+            ? [article.category]
+            : [];
+        return categories.some((c) => c.uid === categoryUid);
+      })
+      .slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
+// Header (singleton)
+export async function getHeader(): Promise<Header | null> {
+  try {
+    const result = await stack
+      .contentType("header")
+      .entry()
+      .query()
+      .find<Header>();
+
+    console.log("[getHeader] entries:", result.entries?.length ?? 0);
+    if (result.entries?.[0]) {
+      console.log("[getHeader] data:", JSON.stringify(result.entries[0], null, 2));
     }
 
-    return entry; // Returning the fetched entry
+    if (result.entries && result.entries.length > 0) {
+      const entry = result.entries[0];
+      if (isPreview) {
+        contentstack.Utils.addEditableTags(entry, "header", true);
+      }
+      return entry;
+    }
+    return null;
+  } catch (err) {
+    console.error("[getHeader] error:", err);
+    return null;
+  }
+}
+
+// Footer (singleton, with category references)
+export async function getFooter(): Promise<Footer | null> {
+  try {
+    const result = await stack
+      .contentType("footer")
+      .entry()
+      .includeReference(["categories_links"])
+      .query()
+      .find<Footer>();
+
+    if (result.entries && result.entries.length > 0) {
+      const entry = result.entries[0];
+      if (isPreview) {
+        contentstack.Utils.addEditableTags(entry, "footer", true);
+      }
+      return entry;
+    }
+    return null;
+  } catch {
+    return null;
   }
 }
