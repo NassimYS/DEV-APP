@@ -4,7 +4,10 @@ import CategoryCard from "@/components/ui/CategoryCard";
 
 export default async function CategoriesSection(props: CategoriesSectionData) {
   const categories = await getAllCategories();
-  const isGrid = props.display_type !== "list";
+  const displayType = Array.isArray(props.display_type)
+    ? props.display_type[0]
+    : props.display_type;
+  const isGrid = displayType !== "list";
 
   return (
     <section className="py-12">
@@ -29,7 +32,7 @@ export default async function CategoriesSection(props: CategoriesSectionData) {
             key={category.uid}
             category={category}
             buttonLabel={props.button}
-            displayMode={props.display_type}
+            displayMode={isGrid ? "grid" : "list"}
           />
         ))}
       </div>

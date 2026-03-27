@@ -51,39 +51,33 @@ export default function AuthorDetail({ author, articles }: AuthorDetailProps) {
             />
           )}
 
-          {author.contact?.email && (
-            <a
-              href={`mailto:${author.contact.email}`}
-              className="mb-4 inline-block text-sm text-gray-600 hover:text-gray-900"
-              {...(author.contact.$ && author.contact.$.email)}
-            >
-              {author.contact.email}
-            </a>
-          )}
-
-          {author.contact?.social_links &&
-            author.contact.social_links.length > 0 && (
-              <div className="mt-4 flex gap-3 justify-center md:justify-start">
-                {author.contact.social_links.map((link, index) => (
+          {author.contact && author.contact.length > 0 && (
+            <div className="mt-4 flex gap-3 justify-center md:justify-start">
+              {author.contact.map((entry, index) => {
+                const sl = entry.social_link;
+                if (!sl) return null;
+                const platform = sl.plateforme?.[0]?.toLowerCase() || "";
+                return (
                   <a
                     key={index}
-                    href={link.url || "#"}
+                    href={sl.url || "#"}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-500 hover:text-gray-900"
-                    {...(link.$ && link.$.url)}
+                    {...(sl.$ && sl.$.url)}
                   >
                     <svg
                       className="h-5 w-5"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path d={socialIcons[link.platform || ""] || ""} />
+                      <path d={socialIcons[platform] || ""} />
                     </svg>
                   </a>
-                ))}
-              </div>
-            )}
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

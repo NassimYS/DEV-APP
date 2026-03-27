@@ -29,10 +29,10 @@ export default async function Footer() {
             </div>
           )}
 
-          {footer.categories_links && footer.categories_links.length > 0 && (
+          {footer.categories_link && footer.categories_link.length > 0 && (
             <div>
               <ul className="space-y-2">
-                {footer.categories_links.map((cat) => (
+                {footer.categories_link.map((cat) => (
                   <li key={cat.uid}>
                     <Link
                       href={getUrl(cat.url)}
@@ -49,24 +49,29 @@ export default async function Footer() {
 
           {footer.social_links && footer.social_links.length > 0 && (
             <div className="flex gap-4">
-              {footer.social_links.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.url || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-white"
-                  {...(link.$ && link.$.url)}
-                >
-                  <svg
-                    className="h-5 w-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
+              {footer.social_links.map((entry, index) => {
+                const sl = entry.social_link;
+                if (!sl) return null;
+                const platform = sl.plateforme?.[0]?.toLowerCase() || "";
+                return (
+                  <a
+                    key={index}
+                    href={sl.url || "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-400 hover:text-white"
+                    {...(sl.$ && sl.$.url)}
                   >
-                    <path d={socialIcons[link.platform || ""] || ""} />
-                  </svg>
-                </a>
-              ))}
+                    <svg
+                      className="h-5 w-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d={socialIcons[platform] || ""} />
+                    </svg>
+                  </a>
+                );
+              })}
             </div>
           )}
         </div>

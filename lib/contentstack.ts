@@ -315,7 +315,7 @@ export async function getFooter(): Promise<Footer | null> {
     const result = await stack
       .contentType("footer")
       .entry()
-      .includeReference(["categories_links"])
+      .includeReference(["categories_link"])
       .query()
       .find<Footer>();
 

@@ -85,20 +85,28 @@ export interface SeoMeta {
 }
 
 export interface SocialLink {
-  platform?: "github" | "linkedin" | "twitter" | "instagram" | "youtube";
+  plateforme?: string[];
   url?: string;
   $?: {
-    platform?: CSLPFieldMapping;
+    plateforme?: CSLPFieldMapping;
     url?: CSLPFieldMapping;
+  };
+}
+
+export interface SocialLinkEntry {
+  social_link?: SocialLink;
+  _metadata?: { uid: string };
+  $?: {
+    social_link?: CSLPFieldMapping;
   };
 }
 
 export interface ContactInfo {
   email?: string;
-  social_links?: SocialLink[];
+  social_link?: SocialLinkEntry[];
   $?: {
     email?: CSLPFieldMapping;
-    social_links?: CSLPFieldMapping;
+    social_link?: CSLPFieldMapping;
   };
 }
 
@@ -134,7 +142,7 @@ export interface Author extends SystemFields {
   url?: string | UrlField;
   bio?: string;
   photo?: ImageWithAlt;
-  contact?: ContactInfo;
+  contact?: SocialLinkEntry[];
   seo?: SeoMeta;
   $?: {
     title?: CSLPFieldMapping;
@@ -207,8 +215,8 @@ export interface ArticlesListSectionData {
 
 export interface CategoriesSectionData {
   section_title?: string;
-  display_type?: "grid" | "list";
-  button_label?: string;
+  display_type?: "grid" | "list" | string[];
+  button?: string;
   _metadata?: { uid: string };
   $?: {
     section_title?: CSLPFieldMapping;
@@ -280,12 +288,14 @@ export interface Header extends SystemFields {
 }
 
 export interface Footer extends SystemFields {
+  title?: string;
   description?: string;
-  categories_links?: Category[];
-  social_links?: SocialLink[];
+  categories_link?: Category[];
+  social_links?: SocialLinkEntry[];
   $?: {
+    title?: CSLPFieldMapping;
     description?: CSLPFieldMapping;
-    categories_links?: CSLPFieldMapping;
+    categories_link?: CSLPFieldMapping;
     social_links?: CSLPFieldMapping;
     [key: string]: CSLPFieldMapping | undefined;
   };
