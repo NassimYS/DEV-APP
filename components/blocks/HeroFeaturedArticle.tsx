@@ -1,32 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { HeroFeaturedArticleData, Article } from "@/types";
-import { getUrl, getColor } from "@/types";
+import type { MappedHeroProps } from "@/lib/mappers/types";
 
-export default function HeroFeaturedArticle(props: HeroFeaturedArticleData) {
-  const article = Array.isArray(props.featured_article)
-    ? props.featured_article[0]
-    : props.featured_article;
-
+export default function HeroFeaturedArticle(props: MappedHeroProps) {
+  const article = props.article;
   if (!article) return null;
 
-  const author = Array.isArray(article.author)
-    ? article.author[0]
-    : article.author;
-    
+  const author = article.author;
+
   return (
     <section
       className="relative overflow-hidden rounded-2xl"
-      style={{ backgroundColor: getColor(props.color) }}
+      style={{ backgroundColor: props.color }}
     >
       <div className="grid md:grid-cols-2 gap-0">
         <div className="flex flex-col justify-center p-8 md:p-12">
-          {props.highlight_text && (
+          {props.highlightText && (
             <span
               className="mb-4 inline-block w-fit rounded-full bg-white/20 px-3 py-1 text-sm font-medium text-white"
-              {...(props.$ && props.$.highlight_text)}
+              {...(props.$ && props.$.highlightText)}
             >
-              {props.highlight_text}
+              {props.highlightText}
             </span>
           )}
 
@@ -36,7 +30,7 @@ export default function HeroFeaturedArticle(props: HeroFeaturedArticleData) {
               {...(article.$ && article.$.title)}
             >
               <Link
-                href={getUrl(article.url)}
+                href={article.url}
                 className="no-underline text-white hover:text-gray-200"
               >
                 {article.title}
@@ -54,10 +48,10 @@ export default function HeroFeaturedArticle(props: HeroFeaturedArticleData) {
           )}
 
           <div className="flex items-center gap-4">
-            {author?.photo?.image?.url && (
+            {author?.photo?.url && (
               <Image
-                src={author.photo.image.url}
-                alt={author.photo.alt_text || ""}
+                src={author.photo.url}
+                alt={author.photo.alt}
                 width={40}
                 height={40}
                 className="h-10 w-10 rounded-full object-cover"
@@ -66,22 +60,22 @@ export default function HeroFeaturedArticle(props: HeroFeaturedArticleData) {
             {author?.title && (
               <span className="text-sm text-white/70">{author.title}</span>
             )}
-            {article.reading_time && (
+            {article.readingTime && (
               <span
                 className="text-sm text-white/70"
-                {...(article.$ && article.$.reading_time)}
+                {...(article.$ && article.$.readingTime)}
               >
-                {article.reading_time} min
+                {article.readingTime} min
               </span>
             )}
           </div>
         </div>
 
-        {article.image?.image?.url && (
+        {article.image?.url && (
           <div className="relative min-h-[300px]">
             <Image
-              src={article.image.image.url}
-              alt={article.image.alt_text || ""}
+              src={article.image.url}
+              alt={article.image.alt}
               fill
               className="object-cover"
               {...(article.image.$ && article.image.$.image)}

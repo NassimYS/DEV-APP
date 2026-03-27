@@ -1,10 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Article } from "@/types";
-import { getUrl, getColor } from "@/types";
+import type { MappedArticle } from "@/lib/mappers/types";
 
 interface ArticleCardProps {
-  article: Article;
+  article: MappedArticle;
   showAuthor?: boolean;
   showDate?: boolean;
 }
@@ -14,20 +13,13 @@ export default function ArticleCard({
   showAuthor = true,
   showDate = true,
 }: ArticleCardProps) {
-  const author = Array.isArray(article.author)
-    ? article.author[0]
-    : article.author;
-  const category = Array.isArray(article.category)
-    ? article.category[0]
-    : article.category;
-
   return (
     <article className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-lg">
-      {article.image?.image?.url && (
-        <Link href={getUrl(article.url)} className="block overflow-hidden">
+      {article.image && (
+        <Link href={article.url} className="block overflow-hidden">
           <Image
-            src={article.image.image.url}
-            alt={article.image.alt_text || ""}
+            src={article.image.url}
+            alt={article.image.alt}
             width={600}
             height={340}
             className="h-48 w-full object-cover transition-transform group-hover:scale-105"
@@ -37,21 +29,21 @@ export default function ArticleCard({
       )}
 
       <div className="p-5">
-        {category && (
+        {article.category && (
           <Link
-            href={getUrl(category.url)}
+            href={article.category.url}
             className="mb-2 inline-block text-xs font-semibold uppercase tracking-wide no-underline"
-            style={{ color: getColor(category.color) }}
-            {...(category.$ && category.$.title)}
+            style={{ color: article.category.color }}
+            {...(article.category.$ && article.category.$.title)}
           >
-            {category.title}
+            {article.category.title}
           </Link>
         )}
 
         {article.title && (
           <h3 className="mb-2 text-lg font-bold text-gray-900">
             <Link
-              href={getUrl(article.url)}
+              href={article.url}
               className="no-underline text-gray-900 hover:text-indigo-600"
               {...(article.$ && article.$.title)}
             >
@@ -70,33 +62,33 @@ export default function ArticleCard({
         )}
 
         <div className="flex items-center gap-3 text-xs text-gray-500">
-          {showAuthor && author && (
+          {showAuthor && article.author && (
             <div className="flex items-center gap-2">
-              {author.photo?.image?.url && (
+              {article.author.photo && (
                 <Image
-                  src={author.photo.image.url}
-                  alt={author.photo.alt_text || ""}
+                  src={article.author.photo.url}
+                  alt={article.author.photo.alt}
                   width={24}
                   height={24}
                   className="h-6 w-6 rounded-full object-cover"
                 />
               )}
               <Link
-                href={getUrl(author.url)}
+                href={article.author.url}
                 className="font-medium text-gray-700 no-underline hover:text-indigo-600"
-                {...(author.$ && author.$.title)}
+                {...(article.author.$ && article.author.$.title)}
               >
-                {author.title}
+                {article.author.title}
               </Link>
             </div>
           )}
 
-          {showDate && article.published_date && (
+          {showDate && article.publishedDate && (
             <time
-              dateTime={article.published_date}
+              dateTime={article.publishedDate}
               {...(article.$ && article.$.published_date)}
             >
-              {new Date(article.published_date).toLocaleDateString("fr-FR", {
+              {new Date(article.publishedDate).toLocaleDateString("fr-FR", {
                 day: "numeric",
                 month: "long",
                 year: "numeric",
@@ -104,9 +96,9 @@ export default function ArticleCard({
             </time>
           )}
 
-          {article.reading_time && (
+          {article.readingTime && (
             <span {...(article.$ && article.$.reading_time)}>
-              {article.reading_time} min
+              {article.readingTime} min
             </span>
           )}
         </div>

@@ -1,11 +1,10 @@
 import Image from "next/image";
-import type { Category, Article } from "@/types";
-import { getColor } from "@/types";
+import type { MappedCategory, MappedArticle } from "@/lib/mappers/types";
 import ArticleCard from "@/components/ui/ArticleCard";
 
 interface CategoryDetailProps {
-  category: Category;
-  articles: Article[];
+  category: MappedCategory;
+  articles: MappedArticle[];
 }
 
 export default function CategoryDetail({
@@ -15,25 +14,25 @@ export default function CategoryDetail({
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <div className="mb-12">
-        {category.image?.image?.url && (
+        {category.image && (
           <div className="relative mb-6 h-48 overflow-hidden rounded-xl">
             <Image
-              src={category.image.image.url}
-              alt={category.image.alt_text || ""}
+              src={category.image.url}
+              alt={category.image.alt}
               fill
               className="object-cover"
               {...(category.image.$ && category.image.$.image)}
             />
             <div
               className="absolute inset-0 opacity-40"
-              style={{ backgroundColor: getColor(category.color) }}
+              style={{ backgroundColor: category.color }}
             />
           </div>
         )}
 
         <h1
           className="mb-4 text-3xl font-bold"
-          style={{ color: category.color ? getColor(category.color) : undefined }}
+          style={{ color: category.color }}
           {...(category.$ && category.$.title)}
         >
           {category.title}

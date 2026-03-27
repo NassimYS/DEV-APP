@@ -1,38 +1,30 @@
-import type { ArticlesListSectionData } from "@/types";
+import type { MappedArticlesListProps } from "@/lib/mappers/types";
 import { getAllArticles } from "@/lib/contentstack";
+import { mapArticle } from "@/lib/mappers";
 import ArticleCard from "@/components/ui/ArticleCard";
 
 export default async function ArticlesListSection(
-  props: ArticlesListSectionData
+  props: MappedArticlesListProps
 ) {
-  let articles = await getAllArticles();
+  const rawArticles = await getAllArticles();
+  let articles = rawArticles.map(mapArticle);
 
-  const filterCategory = Array.isArray(props.filter_category)
-    ? props.filter_category[0]
-    : props.filter_category;
-
-  if (filterCategory) {
-    articles = articles.filter((article) => {
-      const categories = Array.isArray(article.category)
-        ? article.category
-        : article.category
-          ? [article.category]
-          : [];
-      return categories.some((c) => c.uid === filterCategory.uid);
-    });
+  if (props.filterCategoryUid) {
+    articles = articles.filter(
+      (article) => article.category?.uid === props.filterCategoryUid
+    );
   }
 
-  const perPage = props.articles_per_page || 6;
-  const displayedArticles = articles.slice(0, perPage);
+  const displayedArticles = articles.slice(0, props.articlesPerPage);
 
   return (
     <section className="py-12">
-      {props.section_title && (
+      {props.sectionTitle && (
         <h2
           className="mb-8 text-2xl font-bold text-gray-900"
-          {...(props.$ && props.$.section_title)}
+          {...(props.$ && props.$.sectionTitle)}
         >
-          {props.section_title}
+          {props.sectionTitle}
         </h2>
       )}
 

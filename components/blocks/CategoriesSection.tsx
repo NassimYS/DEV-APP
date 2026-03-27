@@ -1,22 +1,21 @@
-import type { CategoriesSectionData } from "@/types";
+import type { MappedCategoriesProps } from "@/lib/mappers/types";
 import { getAllCategories } from "@/lib/contentstack";
+import { mapCategory } from "@/lib/mappers";
 import CategoryCard from "@/components/ui/CategoryCard";
 
-export default async function CategoriesSection(props: CategoriesSectionData) {
-  const categories = await getAllCategories();
-  const displayType = Array.isArray(props.display_type)
-    ? props.display_type[0]
-    : props.display_type;
-  const isGrid = displayType !== "list";
+export default async function CategoriesSection(props: MappedCategoriesProps) {
+  const rawCategories = await getAllCategories();
+  const categories = rawCategories.map(mapCategory);
+  const isGrid = props.displayType !== "list";
 
   return (
     <section className="py-12">
-      {props.section_title && (
+      {props.sectionTitle && (
         <h2
           className="mb-8 text-2xl font-bold text-gray-900"
-          {...(props.$ && props.$.section_title)}
+          {...(props.$ && props.$.sectionTitle)}
         >
-          {props.section_title}
+          {props.sectionTitle}
         </h2>
       )}
 
@@ -31,7 +30,7 @@ export default async function CategoriesSection(props: CategoriesSectionData) {
           <CategoryCard
             key={category.uid}
             category={category}
-            buttonLabel={props.button}
+            buttonLabel={props.buttonLabel}
             displayMode={isGrid ? "grid" : "list"}
           />
         ))}

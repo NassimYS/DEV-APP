@@ -1,6 +1,6 @@
 import Image from "next/image";
 import DOMPurify from "isomorphic-dompurify";
-import type { Author, Article } from "@/types";
+import type { MappedAuthor, MappedArticle } from "@/lib/mappers/types";
 import ArticleCard from "@/components/ui/ArticleCard";
 
 const socialIcons: Record<string, string> = {
@@ -12,18 +12,18 @@ const socialIcons: Record<string, string> = {
 };
 
 interface AuthorDetailProps {
-  author: Author;
-  articles: Article[];
+  author: MappedAuthor;
+  articles: MappedArticle[];
 }
 
 export default function AuthorDetail({ author, articles }: AuthorDetailProps) {
   return (
     <div className="mx-auto max-w-4xl px-4 py-12">
       <div className="mb-12 flex flex-col items-center gap-6 md:flex-row md:items-start">
-        {author.photo?.image?.url && (
+        {author.photo && (
           <Image
-            src={author.photo.image.url}
-            alt={author.photo.alt_text || ""}
+            src={author.photo.url}
+            alt={author.photo.alt}
             width={160}
             height={160}
             className="h-40 w-40 rounded-full object-cover"
@@ -51,31 +51,26 @@ export default function AuthorDetail({ author, articles }: AuthorDetailProps) {
             />
           )}
 
-          {author.contact && author.contact.length > 0 && (
+          {author.socialLinks.length > 0 && (
             <div className="mt-4 flex gap-3 justify-center md:justify-start">
-              {author.contact.map((entry, index) => {
-                const sl = entry.social_link;
-                if (!sl) return null;
-                const platform = sl.plateforme?.[0]?.toLowerCase() || "";
-                return (
-                  <a
-                    key={index}
-                    href={sl.url || "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-500 hover:text-gray-900"
-                    {...(sl.$ && sl.$.url)}
+              {author.socialLinks.map((link, index) => (
+                <a
+                  key={index}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-500 hover:text-gray-900"
+                  {...(link.$ && link.$.url)}
+                >
+                  <svg
+                    className="h-5 w-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="h-5 w-5"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d={socialIcons[platform] || ""} />
-                    </svg>
-                  </a>
-                );
-              })}
+                    <path d={socialIcons[link.platform] || ""} />
+                  </svg>
+                </a>
+              ))}
             </div>
           )}
         </div>

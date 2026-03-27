@@ -1,45 +1,36 @@
-import type { RecentArticlesSectionData } from "@/types";
+import type { MappedRecentArticlesProps } from "@/lib/mappers/types";
 import { getAllArticles } from "@/lib/contentstack";
+import { mapArticle } from "@/lib/mappers";
 import ArticleCard from "@/components/ui/ArticleCard";
 
 export default async function RecentArticlesSection(
-  props: RecentArticlesSectionData
+  props: MappedRecentArticlesProps
 ) {
-  let articles = await getAllArticles();
+  const rawArticles = await getAllArticles();
+  let articles = rawArticles.map(mapArticle);
 
-  const filterCategory = Array.isArray(props.filter_category)
-    ? props.filter_category[0]
-    : props.filter_category;
-
-  if (filterCategory) {
-    articles = articles.filter((article) => {
-      const categories = Array.isArray(article.category)
-        ? article.category
-        : article.category
-          ? [article.category]
-          : [];
-      return categories.some((c) => c.uid === filterCategory.uid);
-    });
+  if (props.filterCategoryUid) {
+    articles = articles.filter(
+      (article) => article.category?.uid === props.filterCategoryUid
+    );
   }
 
   articles.sort((a, b) => {
-    const dateA = a.published_date ? new Date(a.published_date).getTime() : 0;
-    const dateB = b.published_date ? new Date(b.published_date).getTime() : 0;
+    const dateA = a.publishedDate ? new Date(a.publishedDate).getTime() : 0;
+    const dateB = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
     return dateB - dateA;
   });
 
   const recentArticles = articles.slice(0, 3);
 
-  console.log("[RecentArticles] show_auteur:", JSON.stringify(props.show_auteur), "show_date:", JSON.stringify(props.show_date));
-
   return (
     <section className="py-12">
-      {props.section_title && (
+      {props.sectionTitle && (
         <h2
           className="mb-8 text-2xl font-bold text-gray-900"
-          {...(props.$ && props.$.section_title)}
+          {...(props.$ && props.$.sectionTitle)}
         >
-          {props.section_title}
+          {props.sectionTitle}
         </h2>
       )}
 
@@ -48,8 +39,8 @@ export default async function RecentArticlesSection(
           <ArticleCard
             key={article.uid}
             article={article}
-            showAuthor={props.show_auteur === true}
-            showDate={props.show_date === true}
+            showAuthor={props.showAuthor}
+            showDate={props.showDate}
           />
         ))}
       </div>

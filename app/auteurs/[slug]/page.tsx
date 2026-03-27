@@ -4,9 +4,8 @@ import {
   getAuthor,
   getArticlesByAuthor,
   getAllAuthors,
-  isPreview,
 } from "@/lib/contentstack";
-import Preview from "@/components/Preview";
+import { mapAuthor, mapArticle } from "@/lib/mappers";
 import AuthorDetail from "@/components/AuthorDetail";
 import { getUrl } from "@/types";
 
@@ -22,25 +21,23 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const author = await getAuthor(slug);
-  if (!author) return {};
+  const raw = await getAuthor(slug);
+  if (!raw) return {};
   return {
-    title: author.seo?.meta_title || author.title,
-    description: author.seo?.meta_description || author.bio,
+    title: raw.seo?.meta_title || raw.title,
+    description: raw.seo?.meta_description || raw.bio,
   };
 }
 
 export default async function AuthorPage({ params }: Props) {
   const { slug } = await params;
 
-  if (isPreview) {
-    return <Preview path={`/auteurs/${slug}`} />;
-  }
+  const raw = await getAuthor(slug);
+  if (!raw) return notFound();
 
-  const author = await getAuthor(slug);
-  if (!author) return notFound();
-
-  const articles = await getArticlesByAuthor(author.uid);
+  const author = mapAuthor(raw);
+  const rawArticles = await getArticlesByAuthor(raw.uid);
+  const articles = rawArticles.map(mapArticle);
 
   return <AuthorDetail author={author} articles={articles} />;
 }

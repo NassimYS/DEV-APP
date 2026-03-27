@@ -11,6 +11,12 @@ import type {
 
 export const isPreview = process.env.NEXT_PUBLIC_PREVIEW === "true";
 
+const apiKey = (process.env.CONTENTSTACK_API_KEY || process.env.NEXT_PUBLIC_CONTENTSTACK_API_KEY) as string;
+const deliveryToken = (process.env.CONTENTSTACK_DELIVERY_TOKEN || process.env.NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN) as string;
+const environment = (process.env.CONTENTSTACK_ENVIRONMENT || process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT) as string;
+const previewToken = process.env.CONTENTSTACK_PREVIEW_TOKEN || process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN;
+const regionKey = process.env.CONTENTSTACK_REGION || process.env.NEXT_PUBLIC_CONTENTSTACK_REGION || "EU";
+
 const regionMap: Record<string, Region> = {
   NA: Region.US,
   US: Region.US,
@@ -20,29 +26,30 @@ const regionMap: Record<string, Region> = {
   GCP_NA: Region.GCP_NA,
 };
 
-const region = regionMap[process.env.CONTENTSTACK_REGION || "EU"] || Region.EU;
+const region = regionMap[regionKey] || Region.EU;
 
 export const stack = contentstack.stack({
-  apiKey: process.env.CONTENTSTACK_API_KEY as string,
-  deliveryToken: process.env.CONTENTSTACK_DELIVERY_TOKEN as string,
-  environment: process.env.CONTENTSTACK_ENVIRONMENT as string,
+  apiKey,
+  deliveryToken,
+  environment,
   region,
+  locale: "fr",
   live_preview: {
     enable: isPreview,
-    preview_token: process.env.CONTENTSTACK_PREVIEW_TOKEN,
+    preview_token: previewToken,
     host: region === Region.EU ? "eu-rest-preview.contentstack.com" : "rest-preview.contentstack.com",
   },
 });
 
 export function initLivePreview() {
   ContentstackLivePreview.init({
-    ssr: false,
+    ssr: true,
     enable: isPreview,
     mode: "builder",
     stackSdk: stack.config as IStackSdk,
     stackDetails: {
-      apiKey: process.env.CONTENTSTACK_API_KEY as string,
-      environment: process.env.CONTENTSTACK_ENVIRONMENT as string,
+      apiKey,
+      environment,
     },
     editButton: {
       enable: true,
@@ -57,6 +64,7 @@ export async function getPage(url: string): Promise<PageComponent | null> {
     const result = await stack
       .contentType("page_component")
       .entry()
+      .locale("fr")
       .includeReference([
         "sections.hero_featured_article.featured_article",
         "sections.hero_featured_article.featured_article.author",
@@ -90,6 +98,7 @@ export async function getArticle(slug: string): Promise<Article | null> {
     const result = await stack
       .contentType("article")
       .entry()
+      .locale("fr")
       .includeReference(["author", "category"])
       .query()
       .where("url", QueryOperation.EQUALS, `/articles/${slug}`)
@@ -114,6 +123,7 @@ export async function getAuthor(slug: string): Promise<Author | null> {
     const result = await stack
       .contentType("author")
       .entry()
+      .locale("fr")
       .query()
       .where("url", QueryOperation.EQUALS, `/auteurs/${slug}`)
       .find<Author>();
@@ -137,6 +147,7 @@ export async function getCategory(slug: string): Promise<Category | null> {
     const result = await stack
       .contentType("category")
       .entry()
+      .locale("fr")
       .query()
       .where("url", QueryOperation.EQUALS, `/categories/${slug}`)
       .find<Category>();
@@ -160,6 +171,7 @@ export async function getAllArticles(): Promise<Article[]> {
     const result = await stack
       .contentType("article")
       .entry()
+      .locale("fr")
       .includeReference(["author", "category"])
       .query()
       .find<Article>();
@@ -184,6 +196,7 @@ export async function getAllAuthors(): Promise<Author[]> {
     const result = await stack
       .contentType("author")
       .entry()
+      .locale("fr")
       .query()
       .find<Author>();
 
@@ -207,6 +220,7 @@ export async function getAllCategories(): Promise<Category[]> {
     const result = await stack
       .contentType("category")
       .entry()
+      .locale("fr")
       .query()
       .find<Category>();
 
@@ -287,6 +301,7 @@ export async function getHeader(): Promise<Header | null> {
     const result = await stack
       .contentType("header")
       .entry()
+      .locale("fr")
       .query()
       .find<Header>();
 
@@ -315,6 +330,7 @@ export async function getFooter(): Promise<Footer | null> {
     const result = await stack
       .contentType("footer")
       .entry()
+      .locale("fr")
       .includeReference(["categories_link"])
       .query()
       .find<Footer>();

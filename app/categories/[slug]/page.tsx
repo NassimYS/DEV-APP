@@ -4,9 +4,8 @@ import {
   getCategory,
   getArticlesByCategory,
   getAllCategories,
-  isPreview,
 } from "@/lib/contentstack";
-import Preview from "@/components/Preview";
+import { mapCategory, mapArticle } from "@/lib/mappers";
 import CategoryDetail from "@/components/CategoryDetail";
 import { getUrl } from "@/types";
 
@@ -22,25 +21,23 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const category = await getCategory(slug);
-  if (!category) return {};
+  const raw = await getCategory(slug);
+  if (!raw) return {};
   return {
-    title: category.seo?.meta_title || category.title,
-    description: category.seo?.meta_description || category.description,
+    title: raw.seo?.meta_title || raw.title,
+    description: raw.seo?.meta_description || raw.description,
   };
 }
 
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
 
-  if (isPreview) {
-    return <Preview path={`/categories/${slug}`} />;
-  }
+  const raw = await getCategory(slug);
+  if (!raw) return notFound();
 
-  const category = await getCategory(slug);
-  if (!category) return notFound();
-
-  const articles = await getArticlesByCategory(category.uid);
+  const category = mapCategory(raw);
+  const rawArticles = await getArticlesByCategory(raw.uid);
+  const articles = rawArticles.map(mapArticle);
 
   return (
     <CategoryDetail category={category} articles={articles} />

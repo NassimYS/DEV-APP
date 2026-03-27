@@ -1,36 +1,28 @@
 import Image from "next/image";
 import Link from "next/link";
 import DOMPurify from "isomorphic-dompurify";
-import type { Article } from "@/types";
-import { getUrl, getColor } from "@/types";
+import type { MappedArticle } from "@/lib/mappers/types";
 import ArticleCard from "@/components/ui/ArticleCard";
 
 interface ArticleDetailProps {
-  article: Article;
-  relatedArticles: Article[];
+  article: MappedArticle;
+  relatedArticles: MappedArticle[];
 }
 
 export default function ArticleDetail({
   article,
   relatedArticles,
 }: ArticleDetailProps) {
-  const author = Array.isArray(article.author)
-    ? article.author[0]
-    : article.author;
-  const category = Array.isArray(article.category)
-    ? article.category[0]
-    : article.category;
-
   return (
     <article className="mx-auto max-w-4xl px-4 py-12">
-      {category && (
+      {article.category && (
         <Link
-          href={getUrl(category.url)}
+          href={article.category.url}
           className="mb-4 inline-block text-sm font-semibold uppercase tracking-wide no-underline"
-          style={{ color: getColor(category.color) }}
-          {...(category.$ && category.$.title)}
+          style={{ color: article.category.color }}
+          {...(article.category.$ && article.category.$.title)}
         >
-          {category.title}
+          {article.category.title}
         </Link>
       )}
 
@@ -53,15 +45,15 @@ export default function ArticleDetail({
       )}
 
       <div className="mb-8 flex items-center gap-4 border-b border-gray-200 pb-6">
-        {author && (
+        {article.author && (
           <Link
-            href={getUrl(author.url)}
+            href={article.author.url}
             className="flex items-center gap-3 no-underline"
           >
-            {author.photo?.image?.url && (
+            {article.author.photo && (
               <Image
-                src={author.photo.image.url}
-                alt={author.photo.alt_text || ""}
+                src={article.author.photo.url}
+                alt={article.author.photo.alt}
                 width={48}
                 height={48}
                 className="h-12 w-12 rounded-full object-cover"
@@ -70,40 +62,40 @@ export default function ArticleDetail({
             <div>
               <p
                 className="font-medium text-gray-900"
-                {...(author.$ && author.$.title)}
+                {...(article.author.$ && article.author.$.title)}
               >
-                {author.title}
+                {article.author.title}
               </p>
             </div>
           </Link>
         )}
 
         <div className="ml-auto flex items-center gap-4 text-sm text-gray-500">
-          {article.published_date && (
+          {article.publishedDate && (
             <time
-              dateTime={article.published_date}
+              dateTime={article.publishedDate}
               {...(article.$ && article.$.published_date)}
             >
-              {new Date(article.published_date).toLocaleDateString("fr-FR", {
+              {new Date(article.publishedDate).toLocaleDateString("fr-FR", {
                 day: "numeric",
                 month: "long",
                 year: "numeric",
               })}
             </time>
           )}
-          {article.reading_time && (
+          {article.readingTime && (
             <span {...(article.$ && article.$.reading_time)}>
-              {article.reading_time} min
+              {article.readingTime} min
             </span>
           )}
         </div>
       </div>
 
-      {article.image?.image?.url && (
+      {article.image && (
         <div className="mb-8 overflow-hidden rounded-xl">
           <Image
-            src={article.image.image.url}
-            alt={article.image.alt_text || ""}
+            src={article.image.url}
+            alt={article.image.alt}
             width={1200}
             height={630}
             className="h-auto w-full object-cover"

@@ -4,12 +4,10 @@ import {
   getArticle,
   getRelatedArticles,
   getAllArticles,
-  isPreview,
 } from "@/lib/contentstack";
-import Preview from "@/components/Preview";
+import { mapArticle } from "@/lib/mappers";
 import ArticleDetail from "@/components/ArticleDetail";
 import { getUrl } from "@/types";
-import type { Article } from "@/types";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -23,31 +21,31 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getArticle(slug);
-  if (!article) return {};
+  const raw = await getArticle(slug);
+  if (!raw) return {};
   return {
-    title: article.seo?.meta_title || article.title,
-    description: article.seo?.meta_description || article.summary,
+    title: raw.seo?.meta_title || raw.title,
+    description: raw.seo?.meta_description || raw.summary,
   };
 }
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
 
-  if (isPreview) {
-    return <Preview path={`/articles/${slug}`} />;
-  }
+  const raw = await getArticle(slug);
+  if (!raw) return notFound();
 
-  const article = await getArticle(slug);
-  if (!article) return notFound();
+  const article = mapArticle(raw);
 
-  const category = Array.isArray(article.category)
-    ? article.category[0]
-    : article.category;
+  const rawCategory = Array.isArray(raw.category)
+    ? raw.category[0]
+    : raw.category;
 
-  const relatedArticles = category
-    ? await getRelatedArticles(category.uid, article.uid)
+  const rawRelated = rawCategory
+    ? await getRelatedArticles(rawCategory.uid, raw.uid)
     : [];
+
+  const relatedArticles = rawRelated.map(mapArticle);
 
   return (
     <ArticleDetail article={article} relatedArticles={relatedArticles} />

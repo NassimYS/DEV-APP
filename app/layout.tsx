@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import LivePreviewInit from "@/components/LivePreviewInit";
+import { isPreview } from "@/lib/contentstack";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -16,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className="flex min-h-screen flex-col bg-gray-50 text-gray-900 antialiased">
+        {isPreview && <LivePreviewInit />}
         <Header />
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
           {children}

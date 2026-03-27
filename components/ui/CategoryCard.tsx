@@ -1,11 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Category } from "@/types";
-import { getColor } from "@/types";
-import { getUrl } from "@/types";
+import type { MappedCategory } from "@/lib/mappers/types";
 
 interface CategoryCardProps {
-  category: Category;
+  category: MappedCategory;
   buttonLabel?: string;
   displayMode?: "grid" | "list";
 }
@@ -18,10 +16,10 @@ export default function CategoryCard({
   if (displayMode === "list") { 
     return (
       <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 transition-shadow hover:shadow-lg">
-        {category.image?.image?.url && (
+        {category.image && (
           <Image
-            src={category.image.image.url}
-            alt={category.image.alt_text || ""}
+            src={category.image.url}
+            alt={category.image.alt}
             width={64}
             height={64}
             className="h-16 w-16 rounded-lg object-cover"
@@ -46,13 +44,13 @@ export default function CategoryCard({
           )}
         </div>
 
-        {(buttonLabel || category.button_label) && (
+        {(buttonLabel || category.buttonLabel) && (
           <Link
-            href={getUrl(category.url)}
+            href={category.url}
             className="shrink-0 rounded-lg px-4 py-2 text-sm font-medium text-white no-underline"
-            style={{ backgroundColor: getColor(category.color) }}
+            style={{ backgroundColor: category.color }}
           >
-            {buttonLabel || category.button_label}
+            {buttonLabel || category.buttonLabel}
           </Link>
         )}
       </div>
@@ -61,18 +59,18 @@ export default function CategoryCard({
 
   return (
     <div className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition-shadow hover:shadow-lg">
-      {category.image?.image?.url && (
+      {category.image && (
         <div className="relative h-40 overflow-hidden">
           <Image
-            src={category.image.image.url}
-            alt={category.image.alt_text || ""}
+            src={category.image.url}
+            alt={category.image.alt}
             fill
             className="object-cover transition-transform group-hover:scale-105"
             {...(category.image.$ && category.image.$.image)}
           />
           <div
             className="absolute inset-0 opacity-30"
-            style={{ backgroundColor: getColor(category.color) }}
+            style={{ backgroundColor: category.color }}
           />
         </div>
       )}
@@ -94,13 +92,13 @@ export default function CategoryCard({
           </p>
         )}
 
-        {(buttonLabel || category.button_label) && (
+        {(buttonLabel || category.buttonLabel) && (
           <Link
-            href={getUrl(category.url)}
+            href={category.url}
             className="inline-block rounded-lg px-4 py-2 text-sm font-medium text-white no-underline"
-            style={{ backgroundColor: getColor(category.color) }}
+            style={{ backgroundColor: category.color }}
           >
-            {buttonLabel || category.button_label}
+            {buttonLabel || category.buttonLabel}
           </Link>
         )}
       </div>

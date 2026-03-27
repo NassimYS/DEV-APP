@@ -1,22 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { Author } from "@/types";
-import { getUrl } from "@/types";
+import type { MappedAuthor } from "@/lib/mappers/types";
 
 interface AuthorCardProps {
-  author: Author;
+  author: MappedAuthor;
 }
 
 export default function AuthorCard({ author }: AuthorCardProps) {
   return (
     <Link
-      href={getUrl(author.url)}
+      href={author.url}
       className="flex flex-col items-center rounded-xl border border-gray-200 bg-white p-6 text-center no-underline transition-shadow hover:shadow-lg"
     >
-      {author.photo?.image?.url && (
+      {author.photo && (
         <Image
-          src={author.photo.image.url}
-          alt={author.photo.alt_text || ""}
+          src={author.photo.url}
+          alt={author.photo.alt}
           width={96}
           height={96}
           className="mb-4 h-24 w-24 rounded-full object-cover"
