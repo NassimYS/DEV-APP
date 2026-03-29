@@ -1,11 +1,8 @@
 import type { MappedAuthorsProps } from "@/lib/mappers/types";
-import { getAllAuthors } from "@/lib/contentstack";
-import { mapAuthor } from "@/lib/mappers";
 import AuthorCard from "@/components/ui/AuthorCard";
 
-export default async function AuthorsSection(props: MappedAuthorsProps) {
-  const rawAuthors = await getAllAuthors();
-  const authors = rawAuthors.map(mapAuthor);
+export default function AuthorsSection(props: MappedAuthorsProps) {
+  const authors = props.authors ?? [];
 
   return (
     <section className="py-12">
@@ -29,3 +26,4 @@ export default async function AuthorsSection(props: MappedAuthorsProps) {
     </section>
   );
 }
+

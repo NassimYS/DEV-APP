@@ -1,11 +1,8 @@
 import type { MappedCategoriesProps } from "@/lib/mappers/types";
-import { getAllCategories } from "@/lib/contentstack";
-import { mapCategory } from "@/lib/mappers";
 import CategoryCard from "@/components/ui/CategoryCard";
 
-export default async function CategoriesSection(props: MappedCategoriesProps) {
-  const rawCategories = await getAllCategories();
-  const categories = rawCategories.map(mapCategory);
+export default function CategoriesSection(props: MappedCategoriesProps) {
+  const categories = props.categories ?? [];
   const isGrid = props.displayType !== "list";
 
   return (
@@ -38,3 +35,4 @@ export default async function CategoriesSection(props: MappedCategoriesProps) {
     </section>
   );
 }
+

@@ -1,17 +1,20 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
+  isPreview,
   getArticle,
   getRelatedArticles,
   getAllArticles,
 } from "@/lib/contentstack";
 import { mapArticle } from "@/lib/mappers";
 import ArticleDetail from "@/components/ArticleDetail";
+import ArticlePreview from "@/components/ArticlePreview";
 import { getUrl } from "@/types";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  if (isPreview) return [];
   const articles = await getAllArticles();
   return articles
     .filter((a) => a.url)
@@ -32,6 +35,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
 
+  if (isPreview) {
+    return <ArticlePreview slug={slug} />;
+  }
+
   const raw = await getArticle(slug);
   if (!raw) return notFound();
 
@@ -51,3 +58,4 @@ export default async function ArticlePage({ params }: Props) {
     <ArticleDetail article={article} relatedArticles={relatedArticles} />
   );
 }
+

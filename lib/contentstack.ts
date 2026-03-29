@@ -15,7 +15,7 @@ const apiKey = (process.env.CONTENTSTACK_API_KEY || process.env.NEXT_PUBLIC_CONT
 const deliveryToken = (process.env.CONTENTSTACK_DELIVERY_TOKEN || process.env.NEXT_PUBLIC_CONTENTSTACK_DELIVERY_TOKEN) as string;
 const environment = (process.env.CONTENTSTACK_ENVIRONMENT || process.env.NEXT_PUBLIC_CONTENTSTACK_ENVIRONMENT) as string;
 const previewToken = process.env.CONTENTSTACK_PREVIEW_TOKEN || process.env.NEXT_PUBLIC_CONTENTSTACK_PREVIEW_TOKEN;
-const regionKey = process.env.CONTENTSTACK_REGION || process.env.NEXT_PUBLIC_CONTENTSTACK_REGION || "EU";
+const regionKey = process.env.CONTENTSTACK_REGION || process.env.NEXT_PUBLIC_CONTENTSTACK_REGION || "NA";
 
 const regionMap: Record<string, Region> = {
   NA: Region.US,
@@ -81,7 +81,7 @@ export async function getPage(url: string): Promise<PageComponent | null> {
     if (result.entries && result.entries.length > 0) {
       const entry = result.entries[0];
       if (isPreview) {
-        contentstack.Utils.addEditableTags(entry, "page_component", true);
+        contentstack.Utils.addEditableTags(entry, "page_component", true, "fr");
       }
       return entry;
     }
@@ -107,7 +107,7 @@ export async function getArticle(slug: string): Promise<Article | null> {
     if (result.entries && result.entries.length > 0) {
       const entry = result.entries[0];
       if (isPreview) {
-        contentstack.Utils.addEditableTags(entry, "article", true);
+        contentstack.Utils.addEditableTags(entry, "article", true, "fr");
       }
       return entry;
     }
@@ -131,7 +131,7 @@ export async function getAuthor(slug: string): Promise<Author | null> {
     if (result.entries && result.entries.length > 0) {
       const entry = result.entries[0];
       if (isPreview) {
-        contentstack.Utils.addEditableTags(entry, "author", true);
+        contentstack.Utils.addEditableTags(entry, "author", true, "fr");
       }
       return entry;
     }
@@ -155,7 +155,7 @@ export async function getCategory(slug: string): Promise<Category | null> {
     if (result.entries && result.entries.length > 0) {
       const entry = result.entries[0];
       if (isPreview) {
-        contentstack.Utils.addEditableTags(entry, "category", true);
+        contentstack.Utils.addEditableTags(entry, "category", true, "fr");
       }
       return entry;
     }
@@ -179,7 +179,7 @@ export async function getAllArticles(): Promise<Article[]> {
     if (result.entries) {
       if (isPreview) {
         result.entries.forEach((entry) => {
-          contentstack.Utils.addEditableTags(entry, "article", true);
+          contentstack.Utils.addEditableTags(entry, "article", true, "fr");
         });
       }
       return result.entries;
@@ -203,7 +203,7 @@ export async function getAllAuthors(): Promise<Author[]> {
     if (result.entries) {
       if (isPreview) {
         result.entries.forEach((entry) => {
-          contentstack.Utils.addEditableTags(entry, "author", true);
+          contentstack.Utils.addEditableTags(entry, "author", true, "fr");
         });
       }
       return result.entries;
@@ -227,7 +227,7 @@ export async function getAllCategories(): Promise<Category[]> {
     if (result.entries) {
       if (isPreview) {
         result.entries.forEach((entry) => {
-          contentstack.Utils.addEditableTags(entry, "category", true);
+          contentstack.Utils.addEditableTags(entry, "category", true, "fr");
         });
       }
       return result.entries;
@@ -313,7 +313,7 @@ export async function getHeader(): Promise<Header | null> {
     if (result.entries && result.entries.length > 0) {
       const entry = result.entries[0];
       if (isPreview) {
-        contentstack.Utils.addEditableTags(entry, "header", true);
+        contentstack.Utils.addEditableTags(entry, "header", true, "fr");
       }
       return entry;
     }
@@ -338,7 +338,7 @@ export async function getFooter(): Promise<Footer | null> {
     if (result.entries && result.entries.length > 0) {
       const entry = result.entries[0];
       if (isPreview) {
-        contentstack.Utils.addEditableTags(entry, "footer", true);
+        contentstack.Utils.addEditableTags(entry, "footer", true, "fr");
       }
       return entry;
     }

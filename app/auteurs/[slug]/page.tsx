@@ -1,17 +1,20 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
+  isPreview,
   getAuthor,
   getArticlesByAuthor,
   getAllAuthors,
 } from "@/lib/contentstack";
 import { mapAuthor, mapArticle } from "@/lib/mappers";
 import AuthorDetail from "@/components/AuthorDetail";
+import AuthorPreview from "@/components/AuthorPreview";
 import { getUrl } from "@/types";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  if (isPreview) return [];
   const authors = await getAllAuthors();
   return authors
     .filter((a) => a.url)
@@ -32,6 +35,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function AuthorPage({ params }: Props) {
   const { slug } = await params;
 
+  if (isPreview) {
+    return <AuthorPreview slug={slug} />;
+  }
+
   const raw = await getAuthor(slug);
   if (!raw) return notFound();
 
@@ -41,3 +48,4 @@ export default async function AuthorPage({ params }: Props) {
 
   return <AuthorDetail author={author} articles={articles} />;
 }
+

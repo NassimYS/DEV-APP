@@ -1,3 +1,4 @@
+import { getAllArticles, getAllAuthors, getAllCategories } from "@/lib/contentstack";
 import { getUrl, getColor } from "@/types";
 import type {
   Article,
@@ -146,6 +147,7 @@ function mapRecentArticles(
     filterCategoryUid: cat?.uid,
     showAuthor: data.show_auteur === true,
     showDate: data.show_date === true,
+    articles: [], // populated by enrichPageSections
     _metadata: data._metadata,
     $: data.$,
   };
@@ -161,6 +163,7 @@ function mapArticlesList(
     sectionTitle: data.section_title,
     filterCategoryUid: cat?.uid,
     articlesPerPage: data.articles_per_page || 6,
+    articles: [], // populated by enrichPageSections
     _metadata: data._metadata,
     $: data.$,
   };
@@ -176,6 +179,7 @@ function mapCategoriesSection(
     sectionTitle: data.section_title,
     displayType: raw === "list" ? "list" : "grid",
     buttonLabel: data.button,
+    categories: [], // populated by enrichPageSections
     _metadata: data._metadata,
     $: data.$,
   };
@@ -185,6 +189,7 @@ function mapAuthorsSection(data: AuthorsSectionData): MappedAuthorsProps {
   return {
     sectionTitle: data.section_title,
     display: data.display,
+    authors: [], // populated by enrichPageSections
     _metadata: data._metadata,
     $: data.$,
   };
@@ -272,4 +277,58 @@ export function mapFooter(raw: Footer): MappedFooter {
     socialLinks: mapSocialLinks(raw.social_links),
     $: raw.$,
   };
+}
+
+// ── Runtime data enrichment (for preview & server rendering) ──
+
+export async function enrichPageSections(page: MappedPage): Promise<MappedPage> {
+  const types = page.sections.map((s) => s.type);
+  const needsArticles = types.includes("recentArticles") || types.includes("articlesList");
+  const needsAuthors = types.includes("authors");
+  const needsCategories = types.includes("categories");
+
+  const [rawArticles, rawAuthors, rawCategories] = await Promise.all([
+    needsArticles ? getAllArticles() : Promise.resolve([]),
+    needsAuthors ? getAllAuthors() : Promise.resolve([]),
+    needsCategories ? getAllCategories() : Promise.resolve([]),
+  ]);
+
+  const allArticles = rawArticles.map(mapArticle);
+  const allAuthors = rawAuthors.map(mapAuthor);
+  const allCategories = rawCategories.map(mapCategory);
+
+  const enrichedSections = page.sections.map((section) => {
+    if (section.type === "recentArticles") {
+      const props = section.props as MappedRecentArticlesProps;
+      let articles = [...allArticles];
+      if (props.filterCategoryUid) {
+        articles = articles.filter((a) => a.category?.uid === props.filterCategoryUid);
+      }
+      articles.sort((a, b) => {
+        const dateA = a.publishedDate ? new Date(a.publishedDate).getTime() : 0;
+        const dateB = b.publishedDate ? new Date(b.publishedDate).getTime() : 0;
+        return dateB - dateA;
+      });
+      return { ...section, props: { ...props, articles: articles.slice(0, 3) } };
+    }
+    if (section.type === "articlesList") {
+      const props = section.props as MappedArticlesListProps;
+      let articles = [...allArticles];
+      if (props.filterCategoryUid) {
+        articles = articles.filter((a) => a.category?.uid === props.filterCategoryUid);
+      }
+      return { ...section, props: { ...props, articles: articles.slice(0, props.articlesPerPage) } };
+    }
+    if (section.type === "categories") {
+      const props = section.props as MappedCategoriesProps;
+      return { ...section, props: { ...props, categories: allCategories } };
+    }
+    if (section.type === "authors") {
+      const props = section.props as MappedAuthorsProps;
+      return { ...section, props: { ...props, authors: allAuthors } };
+    }
+    return section;
+  });
+
+  return { ...page, sections: enrichedSections };
 }

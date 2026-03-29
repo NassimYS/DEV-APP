@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import ContentstackLivePreview from "@contentstack/live-preview-utils";
 import { getPage, initLivePreview } from "@/lib/contentstack";
-import { mapPage } from "@/lib/mappers";
+import { mapPage, enrichPageSections } from "@/lib/mappers";
 import type { MappedPage } from "@/lib/mappers/types";
 import Page from "./Page";
 
@@ -12,7 +12,10 @@ export default function Preview({ path }: { path: string }) {
 
   const getContent = useCallback(async () => {
     const data = await getPage(path);
-    setPage(data ? mapPage(data) : null);
+    if (!data) return setPage(null);
+    const mapped = mapPage(data);
+    const enriched = await enrichPageSections(mapped);
+    setPage(enriched);
   }, [path]);
 
   useEffect(() => {
@@ -30,3 +33,4 @@ export default function Preview({ path }: { path: string }) {
 
   return <Page page={page} />;
 }
+

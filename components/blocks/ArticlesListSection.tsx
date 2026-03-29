@@ -1,21 +1,10 @@
 import type { MappedArticlesListProps } from "@/lib/mappers/types";
-import { getAllArticles } from "@/lib/contentstack";
-import { mapArticle } from "@/lib/mappers";
 import ArticleCard from "@/components/ui/ArticleCard";
 
-export default async function ArticlesListSection(
+export default function ArticlesListSection(
   props: MappedArticlesListProps
 ) {
-  const rawArticles = await getAllArticles();
-  let articles = rawArticles.map(mapArticle);
-
-  if (props.filterCategoryUid) {
-    articles = articles.filter(
-      (article) => article.category?.uid === props.filterCategoryUid
-    );
-  }
-
-  const displayedArticles = articles.slice(0, props.articlesPerPage);
+  const articles = props.articles ?? [];
 
   return (
     <section className="py-12">
@@ -29,7 +18,7 @@ export default async function ArticlesListSection(
       )}
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {displayedArticles.map((article) => (
+        {articles.map((article) => (
           <ArticleCard
             key={article.uid}
             article={article}
@@ -41,3 +30,4 @@ export default async function ArticlesListSection(
     </section>
   );
 }
+

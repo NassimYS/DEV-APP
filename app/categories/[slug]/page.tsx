@@ -1,17 +1,20 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
+  isPreview,
   getCategory,
   getArticlesByCategory,
   getAllCategories,
 } from "@/lib/contentstack";
 import { mapCategory, mapArticle } from "@/lib/mappers";
 import CategoryDetail from "@/components/CategoryDetail";
+import CategoryPreview from "@/components/CategoryPreview";
 import { getUrl } from "@/types";
 
 type Props = { params: Promise<{ slug: string }> };
 
 export async function generateStaticParams() {
+  if (isPreview) return [];
   const categories = await getAllCategories();
   return categories
     .filter((c) => c.url)
@@ -32,6 +35,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CategoryPage({ params }: Props) {
   const { slug } = await params;
 
+  if (isPreview) {
+    return <CategoryPreview slug={slug} />;
+  }
+
   const raw = await getCategory(slug);
   if (!raw) return notFound();
 
@@ -43,3 +50,4 @@ export default async function CategoryPage({ params }: Props) {
     <CategoryDetail category={category} articles={articles} />
   );
 }
+

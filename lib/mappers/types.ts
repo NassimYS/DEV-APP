@@ -79,6 +79,7 @@ export interface MappedRecentArticlesProps {
   filterCategoryUid?: string;
   showAuthor: boolean;
   showDate: boolean;
+  articles: MappedArticle[];
   _metadata?: { uid: string };
   $?: Record<string, CSLPFieldMapping | undefined>;
 }
@@ -87,6 +88,7 @@ export interface MappedArticlesListProps {
   sectionTitle?: string;
   filterCategoryUid?: string;
   articlesPerPage: number;
+  articles: MappedArticle[];
   _metadata?: { uid: string };
   $?: Record<string, CSLPFieldMapping | undefined>;
 }
@@ -95,6 +97,7 @@ export interface MappedCategoriesProps {
   sectionTitle?: string;
   displayType: "grid" | "list";
   buttonLabel?: string;
+  categories: MappedCategory[];
   _metadata?: { uid: string };
   $?: Record<string, CSLPFieldMapping | undefined>;
 }
@@ -102,6 +105,7 @@ export interface MappedCategoriesProps {
 export interface MappedAuthorsProps {
   sectionTitle?: string;
   display?: string;
+  authors: MappedAuthor[];
   _metadata?: { uid: string };
   $?: Record<string, CSLPFieldMapping | undefined>;
 }
