@@ -54,6 +54,7 @@ export function initLivePreview() {
     editButton: {
       enable: true,
       exclude: ["outsideLivePreviewPortal"],
+      
     },
   });
 }
